@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stowage
+      POSTGRES_PASSWORD: stowage
+      POSTGRES_DB: stowage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stowage -d stowage"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://stowage:stowage@db:5432/stowage
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  dbdata:
